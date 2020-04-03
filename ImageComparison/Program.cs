@@ -172,7 +172,7 @@ namespace ImageComparison
                     {
                         ticksPerTask.Add(timeSpan.Ticks / done);
                     }
-                    if (index == 100) 
+                    else if (index == 99)
                     {
                         ticksPerTask[index] = timeSpan.Ticks / done;
                         index = 0;
