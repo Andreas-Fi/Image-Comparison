@@ -146,6 +146,9 @@ namespace ImageComparison
         {
             int total = 0;
             int done = 0;
+            int index = 0;
+            List<long> ticksPerTask = new List<long>();
+            DateTime timeLastCheck = DateTime.Now;
 
             for (int i = count; i > 0; i--)
             {
@@ -160,6 +163,30 @@ namespace ImageComparison
 
                 double percentDone = ((double)done / (double)total) * 100;
 
+                TimeSpan timeRemaining = new TimeSpan();
+                if (done != 0)
+                {
+                    TimeSpan timeSpan = DateTime.Now.Subtract(timeLastCheck);
+
+                    if (ticksPerTask.Count < 100)
+                    {
+                        ticksPerTask.Add(timeSpan.Ticks / done);
+                    }
+                    if (index == 100) 
+                    {
+                        ticksPerTask[index] = timeSpan.Ticks / done;
+                        index = 0;
+                    }
+                    else
+                    {
+                        ticksPerTask[index] = timeSpan.Ticks / done;
+                        index++;
+                    }
+
+                    long avgticks = Convert.ToInt64(ticksPerTask.Average());
+                    timeRemaining = new TimeSpan(avgticks * (total - done));
+                }
+
                 Console.Clear();
                 Console.Write("[");
                 for (int i = 0; i < percentDone; i++)
@@ -172,6 +199,15 @@ namespace ImageComparison
                 }
                 Console.WriteLine("]\n{0}/{1}", done, total);
 
+                if (timeRemaining.Days == 0)
+                {
+                    Console.WriteLine("Estimated time remaining: {0}:{1}:{2}", timeRemaining.Hours, timeRemaining.Minutes, timeRemaining.Seconds);
+                }
+                else
+                {
+                    Console.WriteLine("Estimated time remaining: {3} d {0}:{1}:{2}", timeRemaining.Hours, timeRemaining.Minutes, timeRemaining.Seconds, timeRemaining.Days);
+                }
+
                 if (done == total)
                 {
                     break;
@@ -183,10 +219,10 @@ namespace ImageComparison
 
         static void Main(string[] args)
         {
-            string path = @"C:\Users\Andreas\OneDrive\Wallpaper3";
-            string outputDirectory = @"C:\Users\Andreas\Desktop\";
-            Console.WindowWidth = 120;
-            
+            Console.WindowWidth = 110;
+
+            string path = @"C:\Users\Andreas\OneDrive\Wallpaper1";
+            string outputDirectory = @"C:\Users\Andreas\Desktop\";            
 
             IEnumerable<string> files;
 
