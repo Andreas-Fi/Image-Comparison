@@ -1,7 +1,0 @@
-C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\bin\Debug\ImageComparison.exe.config
-C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\bin\Debug\ImageComparison.exe
-C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\bin\Debug\ImageComparison.pdb
-C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\obj\Debug\ImageComparison.csprojAssemblyReference.cache
-C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\obj\Debug\ImageComparison.csproj.CoreCompileInputs.cache
-C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\obj\Debug\ImageComparison.exe
-C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\obj\Debug\ImageComparison.pdb
