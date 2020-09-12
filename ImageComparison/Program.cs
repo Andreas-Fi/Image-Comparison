@@ -41,7 +41,7 @@ namespace ImageComparison
     {
         static bool debugMode = false;
         static bool deleteMode = false;
-        static string workingDirectory = @"C:\Users\Andreas\Documents\temp";
+        static string workingDirectory = @"C:\Users\Andreas\OneDrive\Wallpaper4";
         static string outputDirectory = @"C:\Users\Andreas\Desktop";
 
         public static Bitmap ToBlackWhite(Bitmap Bmp)
@@ -99,11 +99,18 @@ namespace ImageComparison
             //file is not locked
             return false;
         }
+        public static Bitmap FromFile(string path)
+        {
+            var bytes = File.ReadAllBytes(path);
+            var ms = new MemoryStream(bytes);
+            var img = Image.FromStream(ms);
+            return (Bitmap)img;
+        }
 
         private static List<Match> Comparerer64(IEnumerable<string> files)
         {
             List<Match> matches = new List<Match>();
-            Bitmap bitmap = new Bitmap(files.ElementAt(0));
+            Bitmap bitmap = FromFile(files.ElementAt(0));
             if (debugMode)
             {
                 Console.Write("File 1: {0}", files.ElementAt(0));
@@ -121,7 +128,7 @@ namespace ImageComparison
 
             for (int j = 1; j < files.Count(); j++)
             {
-                bitmap = new Bitmap(files.ElementAt(j));
+                bitmap = FromFile(files.ElementAt(j));
                 if (debugMode)
                 {
                     Console.Write("File 2: {0}", files.ElementAt(j));
@@ -140,7 +147,7 @@ namespace ImageComparison
                     Console.WriteLine("File 2 name: {0}\nEqual elements: {1}", fileName2, equalElements);
                 }
 
-                if (((double)equalElements / (double)hash1.Count) > .93)
+                if (((double)equalElements / (double)hash1.Count) > .98)
                 {
                     Console.WriteLine("Files {0} and {1} are {2} equal", fileName1, fileName2, ((double)equalElements / (double)hash1.Count).ToString("P"));
                     
@@ -161,7 +168,7 @@ namespace ImageComparison
         }
         private static bool ColourComparerer(string file1, string file2)
         {
-            Bitmap bitmap = new Bitmap(file1);
+            Bitmap bitmap = FromFile(file1);
             bitmap = new Bitmap(bitmap, new Size(512, 512));
             if (debugMode)
             {
@@ -178,7 +185,7 @@ namespace ImageComparison
                 Console.WriteLine("File 1 name: {0}", fileName1);
             }
 
-            Bitmap bitmap2 = new Bitmap(file2);
+            Bitmap bitmap2 = FromFile(file2);
             bitmap2 = new Bitmap(bitmap2, new Size(512, 512));
             if (debugMode)
             {
@@ -235,7 +242,7 @@ namespace ImageComparison
                 File.Delete(workingDirectory + "\\" + item.FileName2);
                 File.AppendAllText(outputDirectory + "\\" + workingDirectory.Substring(workingDirectory.LastIndexOf('\\') + 1) + ".txt", "File " + item.FileName2 + " is now deleted" + Environment.NewLine);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 File.AppendAllText(outputDirectory + "\\" + workingDirectory.Substring(workingDirectory.LastIndexOf('\\') + 1) + ".txt", "File " + item.FileName2 + " COULD NOT be deleted" + Environment.NewLine);
             }            
@@ -377,13 +384,14 @@ namespace ImageComparison
             for (int i = 0; i < taskArray.Length; i++)
             {
                 matches.AddRange(taskArray[i].Result);
+                taskArray[i].Dispose();
             }
 
             matches.Sort();
             foreach (Match item in matches)
             {
                 File.AppendAllText(outputDirectory + "\\" + workingDirectory.Substring(workingDirectory.LastIndexOf('\\') + 1) + ".txt", "Files " + item.FileName1 + " and " + item.FileName2 + " are " + item.EqualElements.ToString("P") + " equal" + Environment.NewLine);
-                if (item.MarkForDeletion /*&& deleteMode*/)
+                if (item.MarkForDeletion && deleteMode)
                 {
                     Delete(item);
                 }
