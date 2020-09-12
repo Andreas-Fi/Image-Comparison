@@ -144,7 +144,7 @@ namespace ImageComparison
                 {
                     Console.WriteLine("Files {0} and {1} are {2} equal", fileName1, fileName2, ((double)equalElements / (double)hash1.Count).ToString("P"));
                     
-                    bool match = Comparerer128(files.ElementAt(0), files.ElementAt(j));
+                    bool match = ColourComparerer(files.ElementAt(0), files.ElementAt(j));
                     if (match)
                     {
                         matches.Add(new Match()
@@ -159,15 +159,16 @@ namespace ImageComparison
             }
             return matches;
         }
-        private static bool Comparerer128(string file1, string file2)
+        private static bool ColourComparerer(string file1, string file2)
         {
             Bitmap bitmap = new Bitmap(file1);
+            bitmap = new Bitmap(bitmap, new Size(512, 512));
             if (debugMode)
             {
                 Console.Write("File 1: {0}", file1);
             }
-            List<byte> hash1 = GetHash(bitmap, 128);
-            bitmap.Dispose();
+            //List<byte> hash1 = GetHash(bitmap, 128);
+            //bitmap.Dispose();
 
             string fileName1 = file1.Substring(file1.LastIndexOf('\\') + 1 /*, file1.LastIndexOf('.') - 1 - file1.LastIndexOf('\\')*/);
             if (fileName1.Length > 10)
@@ -176,17 +177,31 @@ namespace ImageComparison
             {
                 Console.WriteLine("File 1 name: {0}", fileName1);
             }
-            
-            bitmap = new Bitmap(file2);
+
+            Bitmap bitmap2 = new Bitmap(file2);
+            bitmap2 = new Bitmap(bitmap2, new Size(512, 512));
             if (debugMode)
             {
                 Console.Write("File 2: {0}", file2);
             }
-            List<byte> hash2 = GetHash(bitmap, 128);
-            bitmap.Dispose();
+            //List<byte> hash2 = GetHash(bitmap, 128);
+            //bitmap.Dispose();
 
             //determine the number of equal pixel (x of 128*128)
-            int equalElements = hash1.Zip(hash2, (ii, jj) => ii == jj).Count(eq => eq);
+            int equalElements = 0; //hash1.Zip(hash2, (ii, jj) => ii == jj).Count(eq => eq);
+            int count = 0;
+
+            for (int i = 0; i < bitmap.Height; i++)
+            {
+                for (int j = 0; j < bitmap.Width; j++)
+                {
+                    count++;
+                    if (bitmap.GetPixel(i,j).ToArgb() == bitmap2.GetPixel(i,j).ToArgb())
+                    {
+                        equalElements++;
+                    }
+                }
+            }
 
             string fileName2 = file2.Substring(file2.LastIndexOf('\\') + 1 /*, file2.LastIndexOf('.') - 1 - file2.LastIndexOf('\\')*/);
             if (fileName2.Length > 10)
@@ -196,7 +211,10 @@ namespace ImageComparison
                 Console.WriteLine("File 2 name: {0}\nEqual elements: {1}", fileName2, equalElements);
             }
 
-            if (((double)equalElements / (double)hash1.Count) > .98)
+            bitmap.Dispose();
+            bitmap2.Dispose();
+
+            if (((double)equalElements / (double)/*hash1.Count*/ count) > .98)
             {
                 return true;
             }

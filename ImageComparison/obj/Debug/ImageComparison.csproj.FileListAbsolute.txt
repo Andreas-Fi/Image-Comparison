@@ -1,0 +1,7 @@
+C:\Users\Andreas\Source\Repos\Andreas-Fi\Image-Comparison\ImageComparison\bin\Debug\ImageComparison.exe.config
+C:\Users\Andreas\Source\Repos\Andreas-Fi\Image-Comparison\ImageComparison\bin\Debug\ImageComparison.exe
+C:\Users\Andreas\Source\Repos\Andreas-Fi\Image-Comparison\ImageComparison\bin\Debug\ImageComparison.pdb
+C:\Users\Andreas\Source\Repos\Andreas-Fi\Image-Comparison\ImageComparison\obj\Debug\ImageComparison.csproj.CoreCompileInputs.cache
+C:\Users\Andreas\Source\Repos\Andreas-Fi\Image-Comparison\ImageComparison\obj\Debug\ImageComparison.exe
+C:\Users\Andreas\Source\Repos\Andreas-Fi\Image-Comparison\ImageComparison\obj\Debug\ImageComparison.pdb
+C:\Users\Andreas\Source\Repos\Andreas-Fi\Image-Comparison\ImageComparison\obj\Debug\ImageComparison.csprojAssemblyReference.cache
