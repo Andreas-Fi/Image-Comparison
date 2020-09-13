@@ -8,4 +8,4 @@ To do:
 - GUI
 - CPU limiter
 - Memory limiter
-? Compare using the GPU ?
+- ? Compare using the GPU ?
