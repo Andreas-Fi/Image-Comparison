@@ -5,6 +5,7 @@ Can also delete said files if needed.
 
 To do:
 - Save function
+- GUI
 - CPU limiter
 - Memory limiter
 ? Compare using the GPU ?
