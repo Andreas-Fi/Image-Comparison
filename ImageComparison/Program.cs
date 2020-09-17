@@ -14,10 +14,11 @@ namespace ImageComparison
         public string FileName1 { get; set; }
         public string FileName2 { get; set; }
         public double EqualElements { get; set; }
+        public bool MarkForDeletion { get; set; }
 
         public Match()
         {
-
+            MarkForDeletion = false;
         }
 
         public int CompareTo(Match compareMatch)
@@ -35,14 +36,15 @@ namespace ImageComparison
             return (this.EqualElements.Equals(other.EqualElements));
         }
     }
-
+    
     class Program
     {
         static bool debugMode = false;
-        static Mutex mutex = new Mutex();
-        static int tasksDone = 0;
+        static bool deleteMode = false;
+        static string workingDirectory = @"C:\Users\Andreas\OneDrive\Wallpaper2";
+        static string outputDirectory = @"C:\Users\Andreas\Desktop";
 
-        static Bitmap ToBlackWhite(Bitmap Bmp)
+        public static Bitmap ToBlackWhite(Bitmap Bmp)
         {
             int rgb;
             Color c;
@@ -58,10 +60,9 @@ namespace ImageComparison
             }
             return Bmp;
         }
-
-        static List<byte> GetHash(Bitmap bitmap)
+        public static List<byte> GetHash(Bitmap bitmap, int size)
         {
-            bitmap = new Bitmap(bitmap, new Size(64, 64)); //4096 resolution
+            bitmap = new Bitmap(bitmap, new Size(size, size)); //64 = 4096 resolution
             bitmap = ToBlackWhite(bitmap);
             List<byte> hashCode = new List<byte>();
 
@@ -71,28 +72,75 @@ namespace ImageComparison
                 {
                     if (bitmap.GetPixel(i,j) == Color.FromArgb(255,0,0,0))
                         hashCode.Add(1);
-                    
                     else
-                        hashCode.Add(0);
-                    
+                        hashCode.Add(0);                    
                 }                
             }
             bitmap.Dispose();
             return hashCode;
         }
+        public static bool IsFileLocked(FileInfo file)
+        {
+            try
+            {
+                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    stream.Close();
+                }
+            }
+            catch (IOException)
+            {
+                //the file is unavailable because it is:
+                //still being written to
+                //or being processed by another thread
+                //or does not exist (has already been processed)
+                return true;
+            }
+            //file is not locked
+            return false;
+        }
+        public static Bitmap FromFile(string path)
+        {
+            byte[] bytes = File.ReadAllBytes(path);
+            MemoryStream ms = new MemoryStream(bytes);
+            Image img = Image.FromStream(ms);
+            return (Bitmap)img;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="b1"></param>
+        /// <param name="b2"></param>
+        /// <returns>0 = same</returns>
+        public static double PercentDifference(byte b1, byte b2)
+        {
+            double returnValue = Math.Abs(((double)(b1 / (double)b2) - 1.0));
+            return returnValue;
+        }
+        public static double PercentDifference(Color c1, Color c2)
+        {
+            double dif = 0;
+            double difR = PercentDifference(c1.R, c2.R);
+            double difG = PercentDifference(c1.G, c2.G);
+            double difB = PercentDifference(c1.B, c2.B);
 
-        static List<Match> Comparer(IEnumerable<string> files)
+            dif = difR + difG + difB;
+            return dif;
+        }
+
+
+        private static List<Match> Comparerer64(IEnumerable<string> files)
         {
             List<Match> matches = new List<Match>();
-            Bitmap bitmap = new Bitmap(files.ElementAt(0));
+            Bitmap bitmap = FromFile(files.ElementAt(0));
             if (debugMode)
             {
                 Console.Write("File 1: {0}", files.ElementAt(0));
             }
-            List<byte> hash1 = GetHash(bitmap);
+            List<byte> hash1 = GetHash(bitmap, 64);
             bitmap.Dispose();
 
-            string fileName1 = files.ElementAt(0).Substring(files.ElementAt(0).LastIndexOf('\\') + 1, files.ElementAt(0).LastIndexOf('.') - 1 - files.ElementAt(0).LastIndexOf('\\'));
+            string fileName1 = files.ElementAt(0).Substring(files.ElementAt(0).LastIndexOf('\\') + 1 /*, files.ElementAt(0).LastIndexOf('.') - 1 - files.ElementAt(0).LastIndexOf('\\')*/);
             if (fileName1.Length > 10)
                 fileName1 = fileName1.Substring(0, 7) + "...";
             if (debugMode)
@@ -102,18 +150,18 @@ namespace ImageComparison
 
             for (int j = 1; j < files.Count(); j++)
             {
-                bitmap = new Bitmap(files.ElementAt(j));
+                bitmap = FromFile(files.ElementAt(j));
                 if (debugMode)
                 {
                     Console.Write("File 2: {0}", files.ElementAt(j));
                 }
-                List<byte> hash2 = GetHash(new Bitmap(files.ElementAt(j)));
+                List<byte> hash2 = GetHash(bitmap, 64);
                 bitmap.Dispose();
 
                 //determine the number of equal pixel (x of 64*64)
                 int equalElements = hash1.Zip(hash2, (ii, jj) => ii == jj).Count(eq => eq);
 
-                string fileName2 = files.ElementAt(j).Substring(files.ElementAt(j).LastIndexOf('\\') + 1, files.ElementAt(j).LastIndexOf('.') - 1 - files.ElementAt(j).LastIndexOf('\\'));
+                string fileName2 = files.ElementAt(j).Substring(files.ElementAt(j).LastIndexOf('\\') + 1 /*, files.ElementAt(j).LastIndexOf('.') - 1 - files.ElementAt(j).LastIndexOf('\\')*/);
                 if (fileName2.Length > 10)
                     fileName2 = fileName2.Substring(0, 7) + "...";
                 if (debugMode)
@@ -121,155 +169,184 @@ namespace ImageComparison
                     Console.WriteLine("File 2 name: {0}\nEqual elements: {1}", fileName2, equalElements);
                 }
 
-
-                if (((double)equalElements / (double)hash1.Count) > .93)
+                if (((double)equalElements / (double)hash1.Count) > .98)
                 {
-                    if (debugMode)
+                    bool match = ColourComparerer(files.ElementAt(0), files.ElementAt(j));
+                    if (match)
                     {
                         Console.WriteLine("Files {0} and {1} are {2} equal", fileName1, fileName2, ((double)equalElements / (double)hash1.Count).ToString("P"));
-                    }
-                    matches.Add(new Match()
-                    {
-                        FileName1 = files.ElementAt(0).Substring(files.ElementAt(0).LastIndexOf('\\') + 1, files.ElementAt(0).LastIndexOf('.') - 1 - files.ElementAt(0).LastIndexOf('\\')),
-                        FileName2 = files.ElementAt(j).Substring(files.ElementAt(j).LastIndexOf('\\') + 1, files.ElementAt(j).LastIndexOf('.') - 1 - files.ElementAt(j).LastIndexOf('\\')),
-                        EqualElements = ((double)equalElements / (double)hash1.Count)
-                    });
+
+                        matches.Add(new Match()
+                        {
+                            FileName1 = files.ElementAt(0).Substring(files.ElementAt(0).LastIndexOf('\\') + 1 /*, files.ElementAt(0).LastIndexOf('.') - 1 - files.ElementAt(0).LastIndexOf('\\')*/),
+                            FileName2 = files.ElementAt(j).Substring(files.ElementAt(j).LastIndexOf('\\') + 1 /*, files.ElementAt(j).LastIndexOf('.') - 1 - files.ElementAt(j).LastIndexOf('\\')*/),
+                            EqualElements = ((double)equalElements / (double)hash1.Count),
+                            MarkForDeletion = match
+                        });
+                    }                    
                 }
-                mutex.WaitOne();
-                tasksDone++;
-                mutex.ReleaseMutex();
             }
             return matches;
         }
-
-        static void ProgressBar(int count)
+        private static bool ColourComparerer(string file1, string file2)
         {
-            int total = 0;
-            int done = 0;
-            int index = 0;
-            List<long> ticksPerTask = new List<long>();
-            DateTime timeLastCheck = DateTime.Now;
+            Bitmap bitmap = FromFile(file1);
+            bitmap = new Bitmap(bitmap, new Size(512, 512));
 
-            for (int i = count; i > 0; i--)
+            if (debugMode)
             {
-                total += i;
+                Console.Write("File 1: {0}", file1);
+            
+                string fileName1 = file1.Substring(file1.LastIndexOf('\\') + 1);
+                if (fileName1.Length > 10)
+                    fileName1 = fileName1.Substring(0, 7) + "...";
+            
+                Console.WriteLine("File 1 name: {0}", fileName1);
             }
 
-            while(true)
+            Bitmap bitmap2 = FromFile(file2);
+            bitmap2 = new Bitmap(bitmap2, new Size(512, 512));
+            if (debugMode)
             {
-                mutex.WaitOne();
-                done = tasksDone;
-                mutex.ReleaseMutex();
+                Console.Write("File 2: {0}", file2);
+            }
 
-                double percentDone = ((double)done / (double)total) * 100;
+            int equalElements = 0; 
+            int count = 0;
 
-                TimeSpan timeRemaining = new TimeSpan();
-                if (done != 0)
+            for (int i = 0; i < bitmap.Height; i++)
+            {
+                for (int j = 0; j < bitmap.Width; j++)
                 {
-                    TimeSpan timeSpan = DateTime.Now.Subtract(timeLastCheck);
-
-                    if (ticksPerTask.Count < 100)
+                    count++;
+                    if (PercentDifference(bitmap.GetPixel(i, j), bitmap2.GetPixel(i, j)) <= 0.10)
                     {
-                        ticksPerTask.Add(timeSpan.Ticks / done);
+                        equalElements++;
                     }
-                    else if (index == 99)
-                    {
-                        ticksPerTask[index] = timeSpan.Ticks / done;
-                        index = 0;
-                    }
-                    else
-                    {
-                        ticksPerTask[index] = timeSpan.Ticks / done;
-                        index++;
-                    }
+                }
+            }
 
-                    long avgticks = Convert.ToInt64(ticksPerTask.Average());
-                    timeRemaining = new TimeSpan(avgticks * (total - done));
-                }
+            if (debugMode)
+            {
+                string fileName2 = file2.Substring(file2.LastIndexOf('\\') + 1);
 
-                Console.Clear();
-                Console.Write("[");
-                for (int i = 0; i < percentDone; i++)
-                {
-                    Console.Write("=");
-                }
-                for (double i = percentDone; i < 99; i++)
-                {
-                    Console.Write(" ");
-                }
-                Console.WriteLine("]\n{0}/{1}", done, total);
+                if (fileName2.Length > 10)
+                    fileName2 = fileName2.Substring(0, 7) + "...";
+            
+                Console.WriteLine("File 2 name: {0}\nEqual elements: {1}", fileName2, equalElements);
+            }
 
-                if (timeRemaining.Days == 0)
-                {
-                    Console.WriteLine("Estimated time remaining: {0}:{1}:{2}", timeRemaining.Hours, timeRemaining.Minutes, timeRemaining.Seconds);
-                }
-                else
-                {
-                    Console.WriteLine("Estimated time remaining: {3} d {0}:{1}:{2}", timeRemaining.Hours, timeRemaining.Minutes, timeRemaining.Seconds, timeRemaining.Days);
-                }
+            bitmap.Dispose();
+            bitmap2.Dispose();
 
-                if (done == total)
-                {
-                    break;
-                }
-                Thread.Sleep(1000);
+            double t = (double)equalElements / (double)count;
+            
+            if (((double)equalElements / (double) count) > .90)
+            {
+                return true;
+            }
+            
+            return false;
+        }
+
+        static void Delete(Match item)
+        {
+            string folder = workingDirectory.Substring(workingDirectory.LastIndexOf('\\') + 1);
+            if (!Directory.Exists(outputDirectory + "\\" + folder))
+            {
+                Directory.CreateDirectory(outputDirectory + "\\" + folder);
+            }
+
+            try
+            {
+                File.Copy(workingDirectory + "\\" + item.FileName2, outputDirectory + "\\" + folder + "\\" + item.FileName2, true);
+                File.Delete(workingDirectory + "\\" + item.FileName2);
+                File.AppendAllText(outputDirectory + "\\" + workingDirectory.Substring(workingDirectory.LastIndexOf('\\') + 1) + ".txt", "File " + item.FileName2 + " is now deleted" + Environment.NewLine);
+            }
+            catch (Exception ex)
+            {
+                File.AppendAllText(outputDirectory + "\\" + workingDirectory.Substring(workingDirectory.LastIndexOf('\\') + 1) + ".txt", "File " + item.FileName2 + " COULD NOT be deleted" + Environment.NewLine);
             }
             return;
         }
 
         static void Main(string[] args)
         {
-            Console.WindowWidth = 110;
-
-            string path = @"C:\Users\Andreas\OneDrive\Wallpaper1";
-            string outputDirectory = @"C:\Users\Andreas\Desktop\";            
-
             IEnumerable<string> files;
+            int count = 0;
 
             if (args.Count() >= 1)
             {
-                if (args.Contains("-h") || args.Contains("-?"))
+                if (args.Contains("-h"))
                 {
-                    Console.WriteLine("Usage: ImageComparison -h -e [Input path] [Output path] --debug\n" +
+                    Console.WriteLine("Usage: ImageComparison [Input path] [Output path] -d -h --debug\n" +
                         "\nOptions:" +
+                        "\n\t-d\t\tDeletes matches"+
                         "\n\t-h\t\tDisplays the help" +
                         "\n\t--debug\t\tEnables debug mode");
                     return;
                 }
+                //Enables debugging information
                 if (args.Contains("--debug"))
                 {
                     debugMode = true;
                 }
+                if (args.Contains("-d"))
+                {
+                    deleteMode = true;
+                }
                 if (args.Count() == 2 && !args.Contains("--debug"))
                 {
-                    path = args[0];
+                    workingDirectory = args[0];
                     outputDirectory = args[1];
+
+                    if (workingDirectory.Last()=='\\')
+                    {
+                        workingDirectory.Remove(workingDirectory.Count(), 1);
+                    }
+                    if (outputDirectory.Last() == '\\')
+                    {
+                        outputDirectory.Remove(outputDirectory.Count(), 1);
+                    }
                 }
                 else
                 {
-                    path = args[0];
+                    workingDirectory = args[0];
                 }
             }
 
-            files = Directory.EnumerateFiles(path);
+            files = Directory.EnumerateFiles(workingDirectory);
             ulong memoryUsage;
             List<Match> matches = new List<Match>();
+            count = 0;
+            for (int i = 1; i < files.Count(); i++)
+            {
+                int j = files.Count() - i;
+                count += j;
+            }
+            //Estimates the exec time and memory usage
             {                 
+                DateTime t1 = DateTime.Now;
                 long preMemory = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
 
-                Bitmap bitmap = new Bitmap(files.ElementAt(0));
-                List<byte> hash1 = GetHash(bitmap);
+                Bitmap bitmap =FromFile(files.ElementAt(0));
+                List<byte> hash1 = GetHash(bitmap, 64);
                 bitmap.Dispose();
+                bitmap = FromFile(files.ElementAt(1));
+                List<byte> hash2 = GetHash(FromFile(files.ElementAt(1)), 64);
                 long postMemory = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
+                bitmap.Dispose();
+                int equalElements = hash1.Zip(hash2, (ii, jj) => ii == jj).Count(eq => eq);
+
+                DateTime t2 = DateTime.Now;
+                TimeSpan timeSpan = t2 - t1;
 
                 memoryUsage = (ulong)(postMemory - preMemory);
+                Console.WriteLine("Estimated execution time: {0} min", (timeSpan.TotalMinutes * count).ToString("N2"));
             }
-
-            Task progressBar = Task.Factory.StartNew(() => ProgressBar(files.Count() - 1));
 
             //Gets the amount of available memory
             //var memory = new Microsoft.VisualBasic.Devices.ComputerInfo().AvailablePhysicalMemory;
-
             Task<List<Match>>[] taskArray = new Task<List<Match>>[files.Count()];
             for (int i = 0; i < taskArray.Count(); i++)
             {
@@ -281,27 +358,30 @@ namespace ImageComparison
                 }
 
                 var newArray = files.ToList().GetRange(i, files.Count() - i);
-                taskArray[i] = Task<List<Match>>.Factory.StartNew(() => Comparer(newArray));
+                taskArray[i] = Task<List<Match>>.Factory.StartNew(() => Comparerer64(newArray));
                 Thread.Sleep(10);
             }
 
             Task.WaitAll(taskArray);
-            Task.WaitAll(progressBar);
 
             for (int i = 0; i < taskArray.Length; i++)
             {
                 matches.AddRange(taskArray[i].Result);
+                taskArray[i].Dispose();
             }
 
             matches.Sort();
             foreach (Match item in matches)
             {
-                File.AppendAllText(outputDirectory + path.Substring(path.LastIndexOf('\\') + 1) + ".txt", "Files " + item.FileName1 + " and " + item.FileName2 + " are " + item.EqualElements.ToString("P") + " equal" + Environment.NewLine);
+                File.AppendAllText(outputDirectory + "\\" + workingDirectory.Substring(workingDirectory.LastIndexOf('\\') + 1) + ".txt", "Files " + item.FileName1 + " and " + item.FileName2 + " are " + item.EqualElements.ToString("P") + " equal" + Environment.NewLine);
+                if (item.MarkForDeletion && deleteMode)
+                {
+                    Delete(item);
+                }
             }
             Console.Write("\nDone.");
             Console.ReadLine();
             return;
         }
-
     }
 }
