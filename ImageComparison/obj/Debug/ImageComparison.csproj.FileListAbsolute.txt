@@ -5,3 +5,13 @@ C:\Users\Andreas\Source\Repos\Andreas-Fi\Image-Comparison\ImageComparison\obj\De
 C:\Users\Andreas\Source\Repos\Andreas-Fi\Image-Comparison\ImageComparison\obj\Debug\ImageComparison.exe
 C:\Users\Andreas\Source\Repos\Andreas-Fi\Image-Comparison\ImageComparison\obj\Debug\ImageComparison.pdb
 C:\Users\Andreas\Source\Repos\Andreas-Fi\Image-Comparison\ImageComparison\obj\Debug\ImageComparison.csprojAssemblyReference.cache
+C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\bin\Debug\ImageComparison.exe.config
+C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\bin\Debug\ImageComparison.exe
+C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\bin\Debug\ImageComparison.pdb
+C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\obj\Debug\ImageComparison.csprojAssemblyReference.cache
+C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\obj\Debug\ImageComparison.csproj.CoreCompileInputs.cache
+C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\obj\Debug\ImageComparison.exe
+C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\obj\Debug\ImageComparison.pdb
+C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\bin\Debug\CompareFunctions.dll
+C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\bin\Debug\CompareFunctions.pdb
+C:\Users\Andreas\Desktop\VisualStudios Projects\ImageComparison\ImageComparison\obj\Debug\ImageComparison.csproj.CopyComplete

@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.271
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageComparison", "ImageComparison\ImageComparison.csproj", "{597282C2-CBB8-4576-B922-FE3A788C6B9A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageComparisonConsole", "ImageComparison\ImageComparisonConsole.csproj", "{597282C2-CBB8-4576-B922-FE3A788C6B9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompareFunctions", "CompareFunctions\CompareFunctions.csproj", "{1DA3A920-424F-49CD-8252-36E0DA707170}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageComparionGUI", "ImageComparionGUI\ImageComparionGUI.csproj", "{3B08B171-5560-472E-85A1-0BA104F0E339}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{597282C2-CBB8-4576-B922-FE3A788C6B9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{597282C2-CBB8-4576-B922-FE3A788C6B9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{597282C2-CBB8-4576-B922-FE3A788C6B9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DA3A920-424F-49CD-8252-36E0DA707170}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DA3A920-424F-49CD-8252-36E0DA707170}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DA3A920-424F-49CD-8252-36E0DA707170}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DA3A920-424F-49CD-8252-36E0DA707170}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B08B171-5560-472E-85A1-0BA104F0E339}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B08B171-5560-472E-85A1-0BA104F0E339}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B08B171-5560-472E-85A1-0BA104F0E339}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B08B171-5560-472E-85A1-0BA104F0E339}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
