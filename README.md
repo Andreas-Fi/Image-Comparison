@@ -6,7 +6,6 @@ Can also delete said files if needed.
 To do:
 - Fix exec time estimator
 - Save function
-- GUI
 - CPU limiter
 - Memory limiter
 - ? Compare using the GPU ?
